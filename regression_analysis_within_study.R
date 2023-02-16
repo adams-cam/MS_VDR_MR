@@ -24,7 +24,6 @@ vdr <- readRDS(file=here(file.path(path, "data/vdr_geno_iv.rds")))
 vitd <- readRDS(file=here(file.path(path, "data/vitd_IVs.rds")))
 
 # what dataset to do analysis on
-# 
 cur_dataset <- c("kpnc", "gera")
 
 
@@ -61,7 +60,7 @@ results_vitd_crude <-
   group_modify(~glm(case ~ value, data=.x, family="binomial") %>% 
                  tidy(exponentiate=F, conf.int=T) %>% filter(grepl("v", term)))
 
-# adjusted
+# adjusted for covariates
 vars <- c("case", "sex", "age_cat", "drb1_1501_bin", "PC1", "PC2", "PC3", "PC4", "PC5", "PC6")
 dat %>% select(vars) %>% is.na %>% colSums
 results_vitd_adj <- 
@@ -75,7 +74,7 @@ results_vitd_adj <-
 })
 
 
-# adjusted stratified by sex
+# stratified by sex
 results_vitd_sex_adj <- 
   dat %>% pivot_longer(cols=cols) %>% mutate(dataset2=dataset) %>% 
   group_by(dataset, name, sex) %>% 
@@ -133,7 +132,7 @@ results_vdr_crude <- lapply(cols, function(vdr_snp) {
 results_vdr_crude <- results_vdr_crude %>% do.call(rbind, .)
 results_vdr_crude %>% head
 
-# adjusted
+# adjusted for covariates
 f <- "case ~ snp + sex + factor(age_cat) + drb1_1501_bin + PC1 + PC2 + PC3 + PC4 + PC5 + PC6"
 results_vdr_adj <- lapply(cols, function(vdr_snp) {
   #vdr_snp=cols[1]
@@ -194,9 +193,9 @@ results_vdr_vitd_crude <- lapply(vdr_cols, function(vdr_snp) {
   return(out)
 })
 results_vdr_vitd_crude <- results_vdr_vitd_crude %>% do.call(rbind, .)
-results_vdr_vitd_crude %>% head
 
-# adj
+
+# adjusted for covariates
 results_vdr_vitd_adj <- lapply(vdr_cols, function(vdr_snp) {
   #vdr_snp=cols[1]
   out <- dat_long  %>% mutate(dataset2=dataset) %>% mutate(snp=unlist(dat_long[, vdr_snp])) %>% 
